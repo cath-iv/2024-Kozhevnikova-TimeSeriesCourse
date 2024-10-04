@@ -160,52 +160,30 @@ def plot_bestmatch_results(ts: np.ndarray, query: np.ndarray, bestmatch_results:
     bestmatch_results: output data found by the best match algorithm
     """
 
-    ts_len = ts.shape[0]
-    query_len = query.shape[0]
+    query_len = query.shape[0]  # Длина запроса
+    ts_len = ts.shape[0]  # Длина временного ряда
 
-    # Create subplots
-    fig = make_subplots(rows=1, cols=2, column_widths=[0.1, 0.9], subplot_titles=("Query", "Time Series"),
+    fig = make_subplots(rows=1, cols=2, column_widths=[0.1, 0.9], subplot_titles=("Запрос", "Временной ряд"),
                         horizontal_spacing=0.04)
 
-    # Query plot
-    fig.add_trace(go.Scatter(x=np.arange(query_len), y=query, line=dict(color=px.colors.qualitative.Plotly[1], width=4)),
-        row=1, col=1)
+    fig.add_trace(go.Scatter(x=np.arange(query_len), y=query, line=dict(color=px.colors.qualitative.Plotly[1])),
+                  row=1, col=1)
 
-    # Time series plot
     fig.add_trace(go.Scatter(x=np.arange(ts_len), y=ts, line=dict(color=px.colors.qualitative.Plotly[0])),
                   row=1, col=2)
 
-    # Highlight best matches in the time series plot
-    for idx, distance in zip(bestmatch_results['index'], bestmatch_results['distance']):
-        highlight_start = idx
-        highlight_end = idx + query_len
+    indices = bestmatch_results['indices']
 
-        # Highlight the matched area
-        fig.add_trace(go.Scatter(x=np.arange(highlight_start, highlight_end),
-                                 y=ts[highlight_start:highlight_end],
-                                 fill='tozeroy',
-                                 mode='none',
-                                 name='Best Match',
-                                 fillcolor='rgba(255, 0, 0, 0.2)'),
+    for idx in indices:
+        fig.add_trace(go.Scatter(x=np.arange(idx, idx + query_len), y=ts[idx:idx + query_len],
+                                 line=dict(color=px.colors.qualitative.Plotly[1], width=2)),
                       row=1, col=2)
-
-        # Add distance annotations
-        fig.add_annotation(x=highlight_start, y=ts[highlight_start] + 0.1,
-                           text=f'Dist: {distance:.2f}',
-                           showarrow=True,
-                           arrowhead=2)
-
-    # Update layout
     fig.update_annotations(font=dict(size=24, color='black'))
-    fig.update_xaxes(showgrid=False, linecolor='#000', ticks="outside", tickfont=dict(size=18, color='black'))
-    fig.update_yaxes(showgrid=False, linecolor='#000', ticks="outside", tickfont=dict(size=18, color='black'))
-
-    fig.update_layout(title='Best Match Results',
-                      title_x=0.5,
-                      plot_bgcolor="rgba(0,0,0,0)",
-                      paper_bgcolor='rgba(0,0,0,0)',
-                      showlegend=False)
-
+    fig.update_xaxes(showgrid=False, linecolor='#000', ticks="outside", tickfont=dict(size=18, color='black'),
+                     linewidth=1, tickwidth=1, mirror=True)
+    fig.update_yaxes(showgrid=False, linecolor='#000', ticks="outside", tickfont=dict(size=18, color='black'),
+                     zeroline=False, linewidth=1, tickwidth=1, mirror=True)
+    fig.update_layout(plot_bgcolor="white", paper_bgcolor='white', showlegend=False, title_x=0.5)
     fig.show(renderer="colab")
 
 
