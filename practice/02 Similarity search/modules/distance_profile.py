@@ -24,7 +24,11 @@ def brute_force(ts: np.ndarray, query: np.ndarray, is_normalize: bool = True) ->
     N = n-m+1
 
     dist_profile = np.zeros(shape=(N,))
-
-    # INSERT YOUR CODE
-
+    if is_normalize:
+        query = z_normalize(query)
+    for i in range(n - m + 1):
+        subseq = ts[i:i + m]
+        if is_normalize:
+            subseq = z_normalize(subseq)
+        dist_profile[i] = np.linalg.norm(query - subseq)
     return dist_profile
