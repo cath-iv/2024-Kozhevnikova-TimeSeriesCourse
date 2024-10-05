@@ -153,8 +153,21 @@ class NaiveBestMatchFinder(BestMatchFinder):
             'index' : [],
             'distance' : []
         }
-        
-        # INSERT YOUR CODE
+
+        for i in range(N):
+            if i >= excl_zone and i < N - len(query) + 1:
+
+                distance = np.linalg.norm(ts_data[i:i + len(query)] - query)
+                dist_profile[i] = distance
+
+
+                if distance < bsf:
+                    bsf = distance
+                    bestmatch['index'] = [i]
+                    bestmatch['distance'] = [distance]
+                elif distance == bsf:
+                    bestmatch['index'].append(i)
+                    bestmatch['distance'].append(distance)
 
         return bestmatch
 
