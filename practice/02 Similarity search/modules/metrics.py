@@ -72,15 +72,17 @@ def DTW_distance(ts1: np.ndarray, ts2: np.ndarray, r: float = 1) -> float:
     dtw_dist: DTW distance between ts1 and ts2
     """
     n = len(ts1)
-    m = len(ts2)
+    radius = int(r * n)
 
-    d = np.inf * np.ones((n + 1, m + 1))
-    d[0][0] = 0
-    r = int(r * n)
+    # Инициализация матрицы DTW
+    dtw = np.full((n + 1, n + 1), np.inf)
+    dtw[0, 0] = 0  # Начальная позиция
 
+    # Заполнение матрицы DTW с учетом ограничения полосы
     for i in range(1, n + 1):
-        for j in range(max(1, i - r), min(m + 1, i + r + 1)):
-            cost = np.power((ts1[i - 1] - ts2[j - 1]), 2)
-            d[i][j] = cost + np.min([d[i - 1][j], d[i][j - 1], d[i - 1][j - 1]])
-
-    return d[n][m]
+        for j in range(max(1, i - radius), min(n + 1, i + radius + 1)):
+            cost = (ts1[i - 1] - ts2[j - 1]) ** 2
+            dtw[i, j] = cost + min(dtw[i - 1, j],
+                                   dtw[i, j - 1],
+                                   dtw[i - 1, j - 1])
+    return dtw[n, n]

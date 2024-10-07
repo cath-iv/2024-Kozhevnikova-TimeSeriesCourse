@@ -140,34 +140,38 @@ class NaiveBestMatchFinder(BestMatchFinder):
         """
 
         query = copy.deepcopy(query)
-        if (len(ts_data.shape) != 2): # time series set
+        if (len(ts_data.shape) != 2):  # time series set
             ts_data = sliding_window(ts_data, len(query))
 
         N, m = ts_data.shape
         excl_zone = self._calculate_excl_zone(m)
 
-        dist_profile = np.ones((N,))*np.inf
+        dist_profile = np.ones((N,)) * np.inf
         bsf = np.inf
 
         bestmatch = {
-            'index' : [],
-            'distance' : []
+            'indices': [],
+            'distances': []
         }
 
+        if self.is_normalize:
+            query = z_normalize(query)
         for i in range(N):
-            if i >= excl_zone and i < N - len(query) + 1:
-
-                distance = np.linalg.norm(ts_data[i:i + len(query)] - query)
-                dist_profile[i] = distance
-
-
-                if distance < bsf:
-                    bsf = distance
-                    bestmatch['index'] = [i]
-                    bestmatch['distance'] = [distance]
-                elif distance == bsf:
-                    bestmatch['index'].append(i)
-                    bestmatch['distance'].append(distance)
+            if self.is_normalize:
+                T_norm = z_normalize(ts_data[i, :])
+            else:
+                T_norm = ts_data[i, :]
+            dist = DTW_distance(query, T_norm, self.r)
+            if dist < bsf and i > excl_zone:
+                dist_profile[i] = dist
+                bestmatch['indices'].append(i)
+                bestmatch['distances'].append(dist)
+                if len(bestmatch['indices']) == self.topK:
+                    bsf = max(dist_profile[bestmatch['indices']])
+        if len(bestmatch['indices']) > self.topK:
+            topK_results = topK_match(dist_profile, excl_zone, self.topK, bsf)
+            bestmatch['indices'] = topK_results['indices']
+            bestmatch['distances'] = topK_results['distances']
 
         return bestmatch
 
