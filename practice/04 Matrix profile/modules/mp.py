@@ -22,12 +22,19 @@ def compute_mp(ts1: np.ndarray, m: int, exclusion_zone: int = None, ts2: np.ndar
     output: the matrix profile structure
             (matrix profile, matrix profile index, subsequence length, exclusion zone, the first and second time series)
     """
-    
-    # INSERT YOUR CODE
+
+    mp = {}
+    # Преобразуем входные данные к np.ndarray, если требуется
+    if isinstance(ts1, np.ndarray):
+        ts1 = np.array(ts1).astype(np.float64)
+        mp = stumpy.stump(ts1, m)
+    if isinstance(ts2, np.ndarray):
+        ts2 = np.array(ts2).astype(np.float64)
+        mp = stumpy.stump(ts1, m, T_B=ts2)
 
     return {'mp': mp[:, 0],
             'mpi': mp[:, 1],
-            'm' : m,
+            'm': m,
             'excl_zone': exclusion_zone,
-            'data': {'ts1' : ts1, 'ts2' : ts2}
+            'data': {'ts1': ts1, 'ts2': ts2}
             }
