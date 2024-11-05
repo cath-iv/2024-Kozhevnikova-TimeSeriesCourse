@@ -6,31 +6,52 @@ import stumpy
 from stumpy import config
 
 
-def compute_mp(ts1: np.ndarray, m: int, exclusion_zone: int = None, ts2: np.ndarray = None):
+def compute_mp(ts1, m, exclusion_zone=None, ts2=None):
     """
-    Compute the matrix profile
+    Compute the matrix profile between two time series or within one time series.
 
     Parameters
     ----------
-    ts1: the first time series
-    m: the subsequence length
-    exclusion_zone: exclusion zone
-    ts2: the second time series
+    ts1 : numpy.ndarray
+        The first time series.
+
+    m : int
+        The subsequence length.
+
+    exclusion_zone : int, default = None
+        Exclusion zone.
+
+    ts2 : numpy.ndarray, default = None
+        The second time series.
 
     Returns
     -------
-    output: the matrix profile structure
-            (matrix profile, matrix profile index, subsequence length, exclusion zone, the first and second time series)
+    output : dict
+        The matrix profile structure
+        (matrix profile, matrix profile index, subsequence length,
+        exclusion zone, the first and second time series).
     """
+    ts1 = ts1.flatten()
+    # Удаляем NaN из ts1
+    ts1 = ts1[~np.isnan(ts1)]
 
-    mp = {}
-    # Преобразуем входные данные к np.ndarray, если требуется
-    if isinstance(ts1, np.ndarray):
-        ts1 = np.array(ts1).astype(np.float64)
-        mp = stumpy.stump(ts1, m)
-    if isinstance(ts2, np.ndarray):
-        ts2 = np.array(ts2).astype(np.float64)
-        mp = stumpy.stump(ts1, m, T_B=ts2)
+    if ts2 is not None:
+        ts2 = ts2.flatten()
+        # Удаляем NaN из ts2
+        ts2 = ts2[~np.isnan(ts2)]
+
+    # Проверяем, что длина временных рядов достаточна для размера окна m
+    if len(ts1) < m or (ts2 is not None and len(ts2) < m):
+        raise ValueError("Длина временных рядов меньше размера окна m после удаления NaN.")
+
+    if exclusion_zone:
+        config.STUMPY_EXCL_ZONE_DENOM = exclusion_zone
+
+    # Вычисляем матричный профиль
+    if ts2 is not None:
+        mp = stumpy.stump(ts1, m=m, T_B=ts2)
+    else:
+        mp = stumpy.stump(ts1, m=m)
 
     return {'mp': mp[:, 0],
             'mpi': mp[:, 1],

@@ -16,7 +16,9 @@ def top_k_discords(matrix_profile: dict, top_k: int = 3) -> dict:
     --------
     discords: top-k discords (indices, distances to its nearest neighbor and the nearest neighbors indices)
     """
- 
+    profile_distances = np.copy(matrix_profile['mp'])
+    profile_indices = matrix_profile['mpi']
+    
     discords_idx = []
     discords_dist = []
     discords_nn_idx = []
